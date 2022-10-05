@@ -1,0 +1,19 @@
+FROM python:2
+
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install -qy vim
+RUN apt-get install -qy python-pymysql
+RUN pip install pymysql
+RUN pip install flask
+
+COPY ./racetiming/racetiming.py /var/app/racetiming/racetiming.py
+COPY ./racetiming/app.py /var/app/racetiming/app.py
+
+#EXPOSE 80
+
+#CMD ["python","/var/app/racetiming/app.py"]
+
+CMD ["python","/var/app/racetiming/racetiming.py"]
+
+#RUN /bin/bash
+

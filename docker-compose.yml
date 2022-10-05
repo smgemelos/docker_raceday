@@ -1,0 +1,47 @@
+version: '3.8'
+services:
+  db:
+    container_name: mysql
+    #image: mysql
+    build:
+      context: ./
+      dockerfile: mysql_dockerfile
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: lcsportident_events
+      MYSQL_USER: sportident
+      MYSQL_PASSWORD: sportident
+    volumes:
+      - ./mysql:/var/lib/mysql
+
+    ports:
+      - "3306:3306"
+
+  php-apache-environment:
+    container_name: raceday-webapp
+    #image: webserver
+    build:
+      context: ./
+      dockerfile: raceday_dockerfile
+    restart: always
+    depends_on:
+      - db
+    volumes:
+      - ./www:/var/www/html/
+
+    ports:
+      - 80:80
+
+
+  pythonapp:
+    container_name: racetiming
+    #image: webserver
+    build:
+      context: ./
+      dockerfile: racetiming_dockerfile
+    restart: always
+    depends_on:
+      - db
+
+
