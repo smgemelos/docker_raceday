@@ -220,12 +220,15 @@ if(isset($_POST['btn-chip']))
                         <td style="text-align:left;font-size:14px;">
                             <?php
 
-                                while ( $row = mysql_fetch_array($stamps) )
-                                {
-                                    $ts = explode(" ",$row['stamp_punch_datetime']);
-                                    $ms = str_pad ($row['stamp_punch_ms'], 3,$pad_string = "0",$pad_type = STR_PAD_LEFT);
-                                    echo 'Beacon: '.$row['stamp_control_code'].' Mode: '.$row['stamp_control_mode'].' Timestamp: '.$ts[1].'.'.$ms.'</br>';
+                                if (count($stamps)>0) {
+                                    while ( $row = mysql_fetch_array($stamps) )
+                                    {
+                                        $ts = explode(" ",$row['stamp_punch_datetime']);
+                                        $ms = str_pad ($row['stamp_punch_ms'], 3,$pad_string = "0",$pad_type = STR_PAD_LEFT);
+                                        echo 'Beacon: '.$row['stamp_control_code'].' Mode: '.$row['stamp_control_mode'].' Timestamp: '.$ts[1].'.'.$ms.'</br>';
+                                    }
                                 }
+                                
                             ?>
 
                         </td>

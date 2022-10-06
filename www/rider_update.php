@@ -194,10 +194,13 @@ if(isset($_POST['btn-submit']))
 
 			<?php
 
-				foreach (array_keys($extras) as $extra) {
-					echo '<label>'.$extra.'</label>';
-					echo '<font size="4">'.$extras[$extra].'</font>';
-					echo '</br>';
+				if (count($extras) > 0 ){
+				
+					foreach (array_keys($extras) as $extra) {
+						echo '<label>'.$extra.'</label>';
+						echo '<font size="4">'.$extras[$extra].'</font>';
+						echo '</br>';
+					}
 				}
 				echo '</br>';
 				echo '</br>';

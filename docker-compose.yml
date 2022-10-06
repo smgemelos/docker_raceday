@@ -44,4 +44,14 @@ services:
     depends_on:
       - db
 
+  ceslive:
+    container_name: ceslive
+    #image: webserver
+    build:
+      context: ./
+      dockerfile: ceslive_dockerfile
+    restart: always
+    depends_on:
+      - db
+
 

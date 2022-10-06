@@ -1,27 +1,19 @@
 <?php
 session_start();
-$page="admin";
+$page="adminstages";
 
-if(!($racedb = mysql_connect("localhost","root","root",true)))
-{
-     die('oops connection problem ! --> '.mysql_error());
-}
-if(!mysql_select_db("lcsportident_events",$racedb))
-{
-     die('oops database selection problem ! --> '.mysql_error());
-}
-
-
-
+include_once 'dbconnect.php';
 date_default_timezone_set("America/Los_Angeles");
 
+
+
 $query = "SELECT max(stages) FROM categories";
-$maxstages = mysql_fetch_row(mysql_query($query,$racedb))[0];
+$maxstages = mysql_fetch_row(mysql_query($query))[0];
 
 
 $query = "SELECT * FROM categories ORDER BY sortorder";
 
-$cats=mysql_query($query,$racedb);
+$cats=mysql_query($query);
 
 
 
