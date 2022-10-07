@@ -5,14 +5,14 @@ $page="admin";
 #include_once 'awsdbconnect.php';
 
 
-if(!($localcesdb = mysql_connect("mysql","root","root",true)))
-{
-     die('oops connection problem ! --> '.mysql_error());
-}
-if(!mysql_select_db("ces",$localcesdb))
-{
-     die('oops database selection problem ! --> '.mysql_error());
-}
+#if(!($localcesdb = mysql_connect("mysql","root","root",true)))
+#{
+#     die('oops connection problem ! --> '.mysql_error());
+#}
+#if(!mysql_select_db("ces",$localcesdb))
+#{
+#     die('oops database selection problem ! --> '.mysql_error());
+#}
 
 
 

@@ -184,14 +184,6 @@ if(isset($_POST['btn-submit']))
 			</br>
 			</br>
 
-			<label for="emcontact">Emergency Contact:</label>
-			<?php echo $emcontact; ?>
-			</br>
-
-			<label for="emphone">Emergency Phone:</label>
-			<?php echo $emphone; ?>
-			</br>
-
 			<?php
 
 				if (count($extras) > 0 ){
