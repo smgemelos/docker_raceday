@@ -55,8 +55,8 @@ def main():
 
     if dbflag == "local":
         connection = pymysql.connect(host='localhost',
-                                     user='root',
-                                     password='root',
+                                     user='sportident',
+                                     password='sportident',
                                      db='ces',
                                      charset='latin1',
                                      cursorclass=pymysql.cursors.DictCursor)
@@ -87,7 +87,7 @@ def main():
     Points = ref.loadPoints(cur)
     Races,lastrace = ref.loadRaces(cur,seriesid)
 
-    print Races.keys()
+    print(Races.keys())
     Results = []
 
     #Processing Results File
@@ -107,7 +107,7 @@ def main():
             
 
             if (riderid not in Rider):
-                print "WARNING: Race ", l, " -  RiderID not found in DB: ", riderid," Reg Rider Name: ",row['name']
+                print("WARNING: Race ", l, " -  RiderID not found in DB: ", riderid," Reg Rider Name: ",row['name'])
                 continue
 
             gender = Rider[riderid]['gender']
@@ -125,7 +125,7 @@ def main():
                         Standing[teamid]['Female'] = 1 if gender == 'F' else 0
 
                 else:
-                    print "WARNING: Race ", l, " - Rider Skipped based on date added to team: ", Rider[riderid]['ridername']
+                    print("WARNING: Race ", l, " - Rider Skipped based on date added to team: ", Rider[riderid]['ridername'])
 
         #print(Standing)
         

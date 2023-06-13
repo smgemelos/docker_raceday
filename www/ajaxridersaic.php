@@ -9,7 +9,7 @@ $sicard_id = "";
 if( $_GET["timestamp"] ) {
 	$timestamp = $_GET["timestamp"];
 
-	$query = "SELECT * FROM stamps WHERE last_modification > '$timestamp' ORDER BY last_modification DESC LIMIT 1";
+	$query = "SELECT * FROM stamps WHERE stamp_readout_datetime > '$timestamp' ORDER BY stamp_readout_datetime DESC LIMIT 1";
 	$response=mysql_query($query);
 	
 	$count=mysql_num_rows($response);

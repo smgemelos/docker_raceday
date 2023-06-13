@@ -13,20 +13,9 @@ $cats=mysql_query($query);
 if(isset($_POST['btn-regfile']))
 {
 
-
 	$query = "DELETE FROM riders" ;
 	mysql_query($query);
 	$query =  "ALTER TABLE riders AUTO_INCREMENT = 1";
-	mysql_query($query);
-
-	$query = "DELETE FROM lccards";
-	mysql_query($query);
-	$query = "ALTER TABLE lccards AUTO_INCREMENT = 1" ;
-	mysql_query($query);
-
-	$query = "DELETE FROM lccard_link_stamp";
-	mysql_query($query);
-	$query = "ALTER TABLE lccard_link_stamp AUTO_INCREMENT = 1";
 	mysql_query($query);
 
 	$query = "DELETE FROM stamps";
@@ -34,14 +23,38 @@ if(isset($_POST['btn-regfile']))
 	$query = "ALTER TABLE stamps AUTO_INCREMENT = 1";
 	mysql_query($query);
 
+	$query = "DELETE FROM lccard_link_stamp";
+	mysql_query($query);
+	$query = "ALTER TABLE lccard_link_stamp AUTO_INCREMENT = 1";
+	mysql_query($query);
+
+	$query = "DELETE FROM lccards";
+	mysql_query($query);
+	$query = "ALTER TABLE lccards AUTO_INCREMENT = 1" ;
+	mysql_query($query);
+
+	$query = "DELETE FROM lcevents";
+    mysql_query($query);
+    $query = "ALTER TABLE lcevents AUTO_INCREMENT = 1";
+    mysql_query($query);
+
 	$query = "DELETE FROM raceresults";
 	mysql_query($query);
 	$query = "ALTER TABLE raceresults AUTO_INCREMENT = 1";
 	mysql_query($query);
 
-	$query = "UPDATE lcevents SET id_event=1,event_name='1'";
-	mysql_query($query);
+	$query = "DELETE FROM beacons";
+    mysql_query($query);
+    $query = "ALTER TABLE beacons AUTO_INCREMENT = 1";
+    mysql_query($query);
 
+    $query = "DELETE FROM siacriderid";
+    mysql_query($query);
+    $query = "ALTER TABLE siacriderid AUTO_INCREMENT = 1";
+    mysql_query($query);
+
+    $query = "INSERT INTO lcevents (id_event,event_name) VALUES ('1','1') ";
+	$rider=mysql_query($query);
 
 
 	$target_file = "uploads/regfile.csv";
@@ -49,34 +62,69 @@ if(isset($_POST['btn-regfile']))
 
 	$file = fopen($target_file,"r");
 
-	fgetcsv($file);
+	$headers = array();
+  
+	foreach(fgetcsv($file) as $entry) {
+		array_push($headers,$entry);
+	}
+
+	$values = "";
 
 	while(! feof($file))
 	{
-	    $entry = fgetcsv($file);
-	    $plate = $entry[0];
-	    $name = mysql_real_escape_string(ucfirst(trim($entry[1])) . " " . ucfirst(trim($entry[2])));
-	    $category = mysql_real_escape_string(strtoupper(trim($entry[3])));
-	    $emcontact = mysql_real_escape_string(strtoupper(trim($entry[4])));
-	    $emphone = mysql_real_escape_string(strtoupper(trim($entry[5])));
+		$plate = "";
+	    $riderid = "";
+	    $name = "";
+	    $category = "";
+	    $extras_json = '{';
 
-	    $riderid = $plate;
-	    $raceid = 1;
+    	foreach(fgetcsv($file) as $index => $entry) {
+    		switch ($index) {
+        		case 0:
+        			$plate = $entry;
+        			$riderid = $entry;
+        			break;
 
-	    if ($name != " ") {
-	    	$query = "INSERT INTO riders (plate,name,category,riderid,raceid,emcontact,emphone) VALUES ('$plate','$name','$category','$riderid','$raceid','$emcontact','$emphone') " ;
+		        case 1:
+		            $name = mysql_real_escape_string(ucfirst(trim($entry)));
+		            break;
 
-			mysql_query($query);
+		        case 2:
+		        	$name = $name." ".mysql_real_escape_string(ucfirst(trim($entry)));
+		            break;
+
+		        case 3:
+		        	$category = mysql_real_escape_string(strtoupper(trim($entry)));
+		        	break;
+
+		        default:
+		            $extras_json = $extras_json . '"'.$headers[$index].'":"'.$entry.'",';
+		            break;
+      		}
+    	}
+		$extra_json = mysql_real_escape_string(substr($extras_json, 0, -1)."}");
+
+	    if ($name != "" AND $plate != "") {
+	    	$values = $values . '( "'.$plate.'","'.$name.'","'.$riderid.'","'.$category.'","1","'.$extra_json.'"),';
 	    }
-
 		
 	}
 
 	fclose($file);
+	unlink($target_file);
+
+	$value = substr($values, 0, -1);
+
+    $query = "INSERT INTO riders (plate,name,riderid,category,raceid,extras) VALUES ". $value;
+
+  	mysql_query($query);
+
 
 	if ($_POST['loadcats']){
 		$query = "DELETE FROM categories" ;
 		mysql_query($query);
+		$query = "ALTER TABLE categories AUTO_INCREMENT = 1";
+    	mysql_query($query);
 
 		$query = "SELECT category FROM riders GROUP BY category" ;
 		$cats = mysql_query($query);
@@ -88,6 +136,17 @@ if(isset($_POST['btn-regfile']))
 		}
 	}
 
+	for ($i = 1; $i <= 12; ++$i) {
+		$sStart = "s" . $i . " Start";
+		$sFinish = "s" . $i . " Finish";
+		$tpStart = $i;
+		$tpFinish = 100+$i;
+
+		$query = "INSERT INTO beacons (name,timepoint,beaconid,seconds) VALUES 
+			             ('$sStart','$tpStart','$tpStart',0), 
+			             ('$sFinish','$tpFinish','$tpFinish',0)";
+		mysql_query($query);
+	}
 
 	header("Location: loadregfile.php");
 }
@@ -224,18 +283,25 @@ if(isset($_POST['btn-catfile']))
 
 	<div id="rider">
 
+
+<!-- 
+
+<form method="post" action="regfileupload.php" enctype="multipart/form-data" >
+
+-->
+			
 		<form method="post" enctype="multipart/form-data" >			
 
 			<h4>Load Reg File</h4>
 
-			Columns should be:</br>
-			Bib, First Name, Last Name, Category - columns following are ignored</br>
+			<strong>Columns in the CSV file need to be:</strong></br>
+			<strong>Bib, First Name, Last Name, Category - these are required fields.</strong> </br>Columns following Category (optional) can include any other info, i.e. Emergency Contact Info, Additional Packet Pickup Items like t-shirts, meals, camping, etc.</br>
 			</br>
-			The first row is assumed to be a header, and will be ignored.</br>
+			<strong>The first row is expected to be a header</strong>, for columns after category, the name in this row will be used to present the data in the race system.</br>
 			</br>
 
     		<input type="file" name="regfile" id="regfile" onchange="regfileselect()" accept=".csv"></br>
-    		<label for="loadcats" style="width:220px;">Load categories from Reg List:</label>
+    		<label for="loadcats" style="width:220px;">Load categories from Reg File:</label>
 			<input id="loadcats" type="checkbox" name="loadcats" > 
 			</br>
     		<button id="btn-regfile" name="btn-regfile" class="btn btn-primary" style="font-size:12px;"  disabled>Load Reg File</button> 
@@ -244,6 +310,7 @@ if(isset($_POST['btn-catfile']))
 			</br>
 			</br>
 
+<!--
 			<h4>Load Category File</h4>
 
 			Columns should be:</br>
@@ -255,10 +322,11 @@ if(isset($_POST['btn-catfile']))
     		<input type="file" name="catfile" id="catfile" onchange="catfileselect()" accept=".csv"></br>
     		<button id="btn-catfile" name="btn-catfile" class="btn btn-primary" style="font-size:12px;"  disabled>Load Category File</button> 
 
+
 			</br>
 			</br>
 			</br>
-			
+ -->			
 
 		</form>
 

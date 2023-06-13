@@ -1,7 +1,7 @@
 <?php
 session_start();
 $page="admin";
-#include_once 'dbconnect.php';
+include_once 'dbconnect.php';
 #include_once 'awsdbconnect.php';
 
 
@@ -16,15 +16,46 @@ $page="admin";
 
 
 
-if(!($racedb = mysql_connect("mysql","root","root",true)))
-{
-     die('oops connection problem ! --> '.mysql_error());
-}
-if(!mysql_select_db("lcsportident_events",$racedb))
-{
-     die('oops database selection problem ! --> '.mysql_error());
-}
+#if(!($racedb = mysql_connect("mysql","root","root",true)))
+#{
+#     die('oops connection problem ! --> '.mysql_error());
+#}
+#if(!mysql_select_db("lcsportident_events",$racedb))
+#{
+#     die('oops database selection problem ! --> '.mysql_error());
+#}
 
+
+function callAPI($method, $url, $data){
+   $curl = curl_init();
+   switch ($method){
+      case "POST":
+         curl_setopt($curl, CURLOPT_POST, 1);
+         if ($data)
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+         break;
+      case "PUT":
+         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PUT");
+         if ($data)
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $data);			 					
+         break;
+      default:
+         if ($data)
+            $url = sprintf("%s?%s", $url, http_build_query($data));
+   }
+   // OPTIONS:
+   curl_setopt($curl, CURLOPT_URL, $url);
+   curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+      'Content-Type: application/json',
+   ));
+   curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+   curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+   // EXECUTE:
+   $result = curl_exec($curl);
+   if(!$result){die("Connection Failure");}
+   curl_close($curl);
+   return $result;
+}
 
 
 function floattime($timestr) {
@@ -43,11 +74,11 @@ function floattime($timestr) {
 
 #$query = "SELECT * FROM lcevents";
 $query = "SELECT * FROM status WHERE id=1";
-$status=mysql_fetch_array(mysql_query($query,$racedb));
+$status=mysql_fetch_array(mysql_query($query));
 
 
 $query = "SELECT * FROM activestages";
-$activestages=mysql_query($query,$racedb);
+$activestages=mysql_query($query);
 
 
 if(isset($_POST['btn-loadreg']))
@@ -56,53 +87,53 @@ if(isset($_POST['btn-loadreg']))
 	$raceid = $_POST['event'];
 
 	$query = "DELETE FROM riders";
-    mysql_query($query,$racedb);
+    mysql_query($query);
     $query = "ALTER TABLE riders AUTO_INCREMENT = 1";
-    mysql_query($query,$racedb);
+    mysql_query($query);
 
     $query = "DELETE FROM categories";
-    mysql_query($query,$racedb);
+    mysql_query($query);
     $query = "ALTER TABLE categories AUTO_INCREMENT = 1";
-    mysql_query($query,$racedb);
+    mysql_query($query);
 
     $query = "DELETE FROM stamps";
-    mysql_query($query,$racedb);
+    mysql_query($query);
     $query = "ALTER TABLE stamps AUTO_INCREMENT = 1";
-    mysql_query($query,$racedb);
+    mysql_query($query);
 
     $query = "DELETE FROM lccard_link_stamps";
-    mysql_query($query,$racedb);
+    mysql_query($query);
     $query = "ALTER TABLE lccard_link_stamps AUTO_INCREMENT = 1";
-    mysql_query($query,$racedb);
+    mysql_query($query);
 
     $query = "DELETE FROM lccards";
-    mysql_query($query,$racedb);
+    mysql_query($query);
     $query = "ALTER TABLE lccards AUTO_INCREMENT = 1";
-    mysql_query($query,$racedb);
+    mysql_query($query);
 
     $query = "DELETE FROM lcevents";
-    mysql_query($query,$racedb);
+    mysql_query($query);
     $query = "ALTER TABLE lcevents AUTO_INCREMENT = 1";
-    mysql_query($query,$racedb);
+    mysql_query($query);
 
     $query = "DELETE FROM raceresults";
-    mysql_query($query,$racedb);
+    mysql_query($query);
     $query = "ALTER TABLE raceresults AUTO_INCREMENT = 1";
-    mysql_query($query,$racedb);
+    mysql_query($query);
 
     $query = "DELETE FROM beacons";
-    mysql_query($query,$racedb);
+    mysql_query($query);
     $query = "ALTER TABLE beacons AUTO_INCREMENT = 1";
-    mysql_query($query,$racedb);
+    mysql_query($query);
 
     $query = "DELETE FROM siacriderid";
-    mysql_query($query,$racedb);
+    mysql_query($query);
     $query = "ALTER TABLE siacriderid AUTO_INCREMENT = 1";
-    mysql_query($query,$racedb);
+    mysql_query($query);
 
 
     $query = "INSERT INTO lcevents (id_event,event_name) VALUES ('$raceid','$raceid') ";
-	$rider=mysql_query($query,$racedb);
+	$rider=mysql_query($query);
 
 
     // Takes raw data from the request
@@ -140,7 +171,7 @@ if(isset($_POST['btn-loadreg']))
 
         $query = "INSERT INTO riders (`plate`,`name`,`category`,`riderid`,`raceid`,`extras`) VALUES  " . $value;
 
-    	mysql_query($query,$racedb);
+    	mysql_query($query);
     }
 
 	$validentries = 0;
@@ -168,7 +199,7 @@ if(isset($_POST['btn-loadreg']))
 
     	$query = "INSERT INTO categories (`raceid`,`name`,`sortorder`,`gender`,`stages`) VALUES " . $value;
 
-    	mysql_query($query,$racedb);
+    	mysql_query($query);
     }
 
 	for ($i = 1; $i <= 12; ++$i) {
@@ -186,11 +217,11 @@ if(isset($_POST['btn-loadreg']))
 			             ('$sStart','$tpStart',0,0),
 			             ('$sFinish','$tpFinish',0,0)";
 		}
-		mysql_query($query,$racedb);
+		mysql_query($query);
 	}
 
 
-	header("Location: rider_checkin.php");
+	#header("Location: rider_checkin.php");
 
 }
 
@@ -200,9 +231,9 @@ if(isset($_POST['btn-clearresults']))
 {
 
     $query = "DELETE FROM raceresults";
-    mysql_query($query,$racedb);
+    mysql_query($query);
     $query = "ALTER TABLE raceresults AUTO_INCREMENT = 1";
-    mysql_query($query,$racedb);
+    mysql_query($query);
 
 	header("Location: admin.php");
 }
@@ -212,10 +243,46 @@ if(isset($_POST['btn-clearstamps']))
 {
 
     $query = "DELETE FROM stamps";
-    mysql_query($query,$racedb);
+    mysql_query($query);
     $query = "ALTER TABLE stamps AUTO_INCREMENT = 1";
-    mysql_query($query,$racedb);
+    mysql_query($query);
 
+	header("Location: admin.php");
+}
+
+
+if(isset($_POST['racetiming']))
+{
+    if ($_POST['racetiming'] == "ON") {
+    	if ($_SESSION['racetiming'] == "OFF") {
+    		$query = "UPDATE status SET racetiming='restart' WHERE  id=1";
+			mysql_query($query);
+			$_SESSION['racetiming'] = "ON";
+    	}
+    }
+    if ($_POST['racetiming'] == "OFF") {
+    	$query = "UPDATE status SET racetiming='stop' WHERE  id=1";
+		mysql_query($query);
+		$_SESSION['racetiming'] = "OFF";
+    }
+	header("Location: admin.php");
+}
+
+
+if(isset($_POST['ceslive']))
+{
+    if ($_POST['ceslive'] == "ON") {
+    	if ($_SESSION['ceslive'] == "OFF") {
+    		$query = "UPDATE status SET ceslive='restart' WHERE  id=1";
+			mysql_query($query);
+			$_SESSION['ceslive'] = "ON";
+    	}	
+    }
+    if ($_POST['ceslive'] == "OFF") {
+    	$query = "UPDATE status SET ceslive='stop' WHERE  id=1";
+		mysql_query($query);
+		$_SESSION['ceslive'] = "OFF";
+    }
 	header("Location: admin.php");
 }
 
@@ -224,7 +291,7 @@ if(isset($_POST['btn-clearstamps']))
 if(isset($_POST['btn-uploadresults']))
 {
 
-	
+
 }
 
 
@@ -331,7 +398,7 @@ if(isset($_POST['btn-uploadresults']))
 					$events = $data['events'];
 
 				    foreach($events as $event) {
-						echo '<option value="'.$event['id'].'">'.$event['name'].'</option>';
+						echo '<option value="'.$event['id'].'">'.$event['name'].$event['id'].'</option>';
 					}
 					?>
 				</select>
@@ -343,49 +410,25 @@ if(isset($_POST['btn-uploadresults']))
 
 
 			<h4>Race Management </h4>
+			</br>
 
 
 			<label for="racetiming">Racetiming App:</label>
-			<input id="racetiming" type="checkbox" name="racetiming" onclick="racetimingaction()" 
-					<?php 
-					if ($status["racetiming"] == "start") {
-						echo "checked> ON";
-					} elseif ($status["racetiming"] == "restart") {
-						echo "checked> ON";
-					} else {
-						echo "> OFF";
-					}
-
-					?>
-			</br> 
-
-			<label for="dbbackup">Race Backup:</label>
-			<input id="dbbackup" type="checkbox" name="dbbackup" onclick="dbbackupaction()" 
-			        <?php 
-					if ($status["mysqlbackup"] == "start") {
-						echo "checked> ON";
-					} elseif ($status["mysqlbackup"] == "restart") {
-						echo "checked> ON";
-					} else {
-						echo "> OFF";
-					}?>  
-			</br> 
+			<select id="racetiming" type="text" name="racetiming" onchange="this.form.submit()" >
+					<option value="ON" <?php if ($status["racetiming"] == "start") { echo "selected"; } ?> >ON</option>
+					<option value="OFF" <?php if ($status["racetiming"] == "stop") { echo "selected"; } ?> >OFF</option>
+			</select>
 
 			<label for="ceslive">CES Live App:</label>
-			<input id="ceslive" type="checkbox" name="ceslive" onclick="cesliveaction()" 
-					<?php 
-					if ($status["ceslive"] == "start") {
-						echo "checked> ON";
-					} elseif ($status["ceslive"] == "restart") {
-						echo "checked> ON";
-					} else {
-						echo "> OFF";
-					}
+			<select id="ceslive" type="text" name="ceslive" onchange="this.form.submit()" >
+					<option value="ON" <?php if ($status["ceslive"] == "start") { echo "selected"; } ?> >ON</option>
+					<option value="OFF" <?php if ($status["ceslive"] == "stop") { echo "selected"; } ?> >OFF</option>
+			</select>
+			</br> 
+			</br> 
+			</br>
+			
 
-					?>
-			</br> 
-			</br> 
-		
 
 			<label for="verifyclearresults">Delete Results:</label>
 			<input id="verifyclearresults" type="checkbox" name="verifyclearresults" onclick="clearresults()" > 
@@ -401,25 +444,30 @@ if(isset($_POST['btn-uploadresults']))
 			</br>
 			
 					
-<!--
+
 			</br>
 			</br>
 			<h4>Upload Race Results to main CES DB</h4>
+			<?php 
+			  echo $_SESSION['uploadResponse']."</br>";
+			  $_SESSION['uploadResponse'] = "";
+			?>
 			<label for="racecomplete">Race Complete:</label>
 			<input id="racecomplete" type="checkbox" name="racecomplete" onclick="complete()" > 
 			</br>
 			<button id="btn-uploadresults" name="btn-uploadresults" class="btn btn-primary" style="font-size:12px;" disabled>Upload Race Results</button> 
 			</br>
--->
+
+
 			<h4><?php echo $_SESSION['dbselect']; ?></h4>
 			</br>
 			</br>
 			<h4>Use Desktop Script for local race results upload and series results calculation.</h4>
 			</br>
 			cd c:\Users\smg\Dropbox\CES\Workspace\userRegister\raceday\python</br>
-			python loadresultsDB_StagePlacement_StageWins.py 20239 local</br>
-			python IndStandings_stage_points.py 16 local</br>
-			python TeamStandingsdb.py 16 local</br>
+			python3 loadresultsDB_StagePlacement_StageWins.py 20239 local</br>
+			python3 IndStandings_stage_points.py 16 local</br>
+			python3 TeamStandingsdb.py 16 local</br>
 			</br>
 			<a href="local_ind_series_results.php">Local Individual Series Results</a>
 			</br>

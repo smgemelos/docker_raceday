@@ -19,7 +19,7 @@ def loadRaces(cur,seriesid):
         
 		racenum = row['racenum']
 		raceid = row['id']
-		racename = row['name'].encode('ascii')
+		racename = row['name']
 		racedate = row['racedate']
 		lastrace = row['racenum']
 
@@ -40,7 +40,7 @@ def loadGtRaces(cur):
         
 		racenum = row['racenumber']
 		raceid = row['id']
-		racename = row['name'].encode('ascii')
+		racename = row['name']
 		racedate = row['racedate']
 		#racedate = time.strptime(row['racedate'].strip(), "%Y-%m-%d")
         
@@ -56,9 +56,9 @@ def loadTeams(cur):
 
 	for row in cur.fetchall():
 
-		teamid = row['teamid'].encode('ascii')
-		print row['teamname']
-		teamname = row['teamname'].encode('ascii')
+		teamid = row['teamid']
+		#print(row['teamname'])
+		teamname = row['teamname']
         
 		Dict[teamid] = {"teamname":teamname, "teamid":teamid, "total":0, "1":"", "2":"" , "3":"" , "4":"" , "5":"" , "6":"", "7":"", "8":""}
 
@@ -73,12 +73,12 @@ def loadTeamMembers(cur):
 
 	for row in cur.fetchall():
 
-		riderid = row['riderid'].encode('ascii')
+		riderid = row['riderid']
 		adddate = row['adddate']
-		teamid = row['teamid'].encode('ascii')
-		teamname = row['teamname'].encode('ascii')
-		#print row['ridername']
-		ridername = row['ridername'].encode('ascii')
+		teamid = row['teamid']
+		teamname = row['teamname']
+		#print(row['ridername'])
+		ridername = row['ridername']
 
 
 		dropdate = ""
@@ -90,24 +90,23 @@ def loadTeamMembers(cur):
 def loadRiders(cur):
 	# Processing Riders File
 	Dict = {}
-	query = "SELECT * FROM rider"
+	query = "SELECT riderid,name,dob,category,gender FROM rider"
 	cur.execute(query)
 
 	for row in cur.fetchall():
 
 		riderid = row['riderid']
 		ridername = row['name']	
-		#print riderid
-		#print row['name'].encode('ascii')
+		#print(riderid)
+		#print(row['name'])
+		#print(row['name'].encode('ascii'))
 		dob = row['dob']
 		raceage = time.localtime()[0] - dob.year
 
-
 		category = row['category']
 		gender = row['gender']
-		sponsors = row['sponsors']
 
-		Dict[riderid] = {"ridername":ridername, "category":category, "gender":gender, "sponsors":sponsors, "raceage":raceage}
+		Dict[riderid] = {"ridername":ridername, "category":category, "gender":gender, "raceage":raceage}
 
 	return Dict
 
@@ -119,7 +118,7 @@ def loadPoints(cur):
 
 	for row in cur.fetchall():
 
-		place = row['place'].encode('ascii')
+		place = row['place']
 		points = row['points']
 
 		Dict[place] = int(points)
@@ -134,10 +133,10 @@ def loadCategories(cur):
 
 	for row in cur.fetchall():
 
-		category = row['name'].encode('ascii')
+		category = row['name']
 		sortorder = int(row['sortorder'])
-		cat = row['cat'].encode('ascii')
-		gender = row['gender'].encode('ascii')
+		cat = row['cat']
+		gender = row['gender']
 		minage = int(row['minage'])
 		maxage = int(row['maxage'])
 		dropraces = int(row['dropraces'])

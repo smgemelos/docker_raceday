@@ -31,6 +31,7 @@ logger.setLevel(logging.DEBUG)
 # logger.critical("Internet is down")
 
 Standing = {}
+SiacRiderid = {}
 Rider = {}
 
 Stages = ['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12']
@@ -60,8 +61,15 @@ def loadRiders(cur):
 def loadSiacRiderid(cur):
     # Processing Riders File
     Dict = {}
-    query = "SELECT * FROM siacriderid "
-    cur.execute(query)
+
+    try:
+        query = "SELECT * FROM siacriderid "
+        cur.execute(query)   
+    except pymysql.Error as e:
+        print("ERROR: Failed to Load SiacRiderID - %d: %s" % (e.args[0],e.args[1]))
+        logger.error("Failed to Load SiacRiderID - %d: %s" % (e.args[0],e.args[1]))
+        racedb.close()
+        sys.exit("Failed to Load SiacRiderID") 
 
     for row in cur.fetchall():
 
@@ -79,8 +87,15 @@ def loadSiacRiderid(cur):
 def loadTimeAdjust(cur):
     # Processing Riders File
     Dict = {}
-    query = "SELECT * FROM beacons"
-    cur.execute(query)
+
+    try:
+        query = "SELECT * FROM beacons"
+        cur.execute(query) 
+    except pymysql.Error as e:
+        print("ERROR: Failed to Load Beacons Timeadjust- %d: %s" % (e.args[0],e.args[1]))
+        logger.error("Failed to Load Beacons Timeadjust - %d: %s" % (e.args[0],e.args[1]))
+        racedb.close()
+        sys.exit("Failed to Load Beacons Timeadjust") 
 
     for row in cur.fetchall():
 
@@ -94,8 +109,15 @@ def loadTimeAdjust(cur):
 def loadBeacons(cur):
     # Processing Riders File
     Dict = {}
-    query = "SELECT * FROM beacons"
-    cur.execute(query)
+
+    try:
+        query = "SELECT * FROM beacons"
+        cur.execute(query) 
+    except pymysql.Error as e:
+        print("ERROR: Failed to Load Beacons - %d: %s" % (e.args[0],e.args[1]))
+        logger.error("Failed to Load Beacons - %d: %s" % (e.args[0],e.args[1]))
+        racedb.close()
+        sys.exit("Failed to Load Beacons") 
 
     for row in cur.fetchall():
 
@@ -110,8 +132,16 @@ def loadBeacons(cur):
 def loadCatStages(cur):
     # Processing Riders File
     Dict = {}
-    query = "SELECT * FROM categories"
-    cur.execute(query)
+    
+
+    try:
+        query = "SELECT * FROM categories"
+        cur.execute(query)
+    except pymysql.Error as e:
+        print("ERROR: Failed to Load Categories - %d: %s" % (e.args[0],e.args[1]))
+        logger.error("Failed to Load Categories - %d: %s" % (e.args[0],e.args[1]))
+        racedb.close()
+        sys.exit("Failed to Load Categories") 
 
     for row in cur.fetchall():
 
@@ -209,27 +239,29 @@ def main():
 
     # Connect to the database
     logger.info("Connecting to race database")
-    attempts = 20
+    attempts = 100
     while attempts:
         try:
-            racedb = pymysql.connect(host='mysql',user='root',password='root',db='lcsportident_events',charset='latin1',cursorclass=pymysql.cursors.DictCursor)
+            racedb = pymysql.connect(host='mysql',user='sportident',password='sportident',db='lcsportident_events',charset='utf8',cursorclass=pymysql.cursors.DictCursor)
             racedb.autocommit(True)
             racedb_cur = racedb.cursor()
+            logger.info("DB Connectioned")
+            print("DB Connectioned")
             break
-        except:
-            logger.error("DB Connection Failed")
-            print "DB Connection Failed - retrying...."
+        except pymysql.Error as e:
+            logger.error("DB Connection Failed - %d: %s" % (e.args[0],e.args[1]))
+            print("DB Connection Failed - %d: %s - retrying" % (e.args[0],e.args[1]))
             time.sleep(1.0)
             attempts -= 1
 
     
-
-
-    
     catStages = loadCatStages(racedb_cur)
     beacons = loadBeacons(racedb_cur)
+    timeAdjust = loadTimeAdjust(racedb_cur)
 
-    laststamp = d.datetime(1970, 1,1).strftime("%Y-%m-%d %H:%M:%S")
+    #laststamp = d.datetime(1970, 1,1).strftime("%Y-%m-%d %H:%M:%S")
+    laststamp = 0
+
 
     waitprint = 10
 
@@ -241,24 +273,36 @@ def main():
 
         if (state["racetiming"] == "restart"):
 
-            #print "Restarting"
+            #print("Restarting")
             logger.info("Restart Triggered")
-            laststamp = d.datetime(1970, 1,1).strftime("%Y-%m-%d %H:%M:%S")
+            #laststamp = d.datetime(1970, 1,1).strftime("%Y-%m-%d %H:%M:%S")
+            laststamp = 0
             query = "UPDATE status SET racetiming='start' WHERE id=1" 
             racedb_cur.execute(query)
 
-        
+            catStages.clear()
+            beacons.clear()
+            timeAdjust.clear()
+            Standing.clear()
+            SiacRiderid.clear()
+
+            catStages = loadCatStages(racedb_cur)
+            beacons = loadBeacons(racedb_cur)
+            timeAdjust = loadTimeAdjust(racedb_cur)
+
 
         if (state["racetiming"] == "start"):
 
-            #print "Waiting...."
+            #print("Waiting....")
             if waitprint == 0:
                 logger.info("Racetiming Running - waiting for stamps")
                 waitprint = 10
 
-            timeAdjust = loadTimeAdjust(racedb_cur)
+            Standing.clear()
 
-            query = "SELECT * FROM stamps WHERE id_event=1 AND stamp_readout_datetime>'%s' order by stamp_readout_datetime" % laststamp
+            #query = "SELECT * FROM stamps WHERE id_event=1 AND stamp_readout_datetime>'%s' order by stamp_readout_datetime" % laststamp
+            query = "SELECT * FROM stamps WHERE id_event=1 AND id_stamp>'%s' order by id_stamp" % laststamp
+
             racedb_cur.execute(query)
             count = racedb_cur.rowcount
             
@@ -270,9 +314,6 @@ def main():
                 #racedb_cur.execute(query)
 
                 stamps = racedb_cur.fetchall()
-
-                Standings = {}
-                SiacRiderid = {}
 
                 '''
                 Run through each of the new timestamps in the stamps TABLE
@@ -287,14 +328,15 @@ def main():
                     stamp_type = stamp['stamp_type']
                     read_datetime = stamp['stamp_readout_datetime']
                     punch_time = stamp['stamp_punch_datetime']
-                    punch_time = punch_time.replace(year=1970, month=01, day=01)
+                    punch_time = punch_time.replace(year=1970, month=1, day=1)
                     punch_ms = stamp['stamp_punch_ms']
 
-                    #print "Read stamp - saicID: ",sicard_id," code: ",control_code,"    mode: ",control_mode
                     message = "Read stamp - saicID: %s code: %s mode: %s" % (sicard_id,control_code,control_mode)
+                    print(message)
                     logger.info(message)
 
-                    laststamp = read_datetime.strftime("%Y-%m-%d %H:%M:%S")
+                    #laststamp = read_datetime.strftime("%Y-%m-%d %H:%M:%S")
+                    laststamp = stamp['id_stamp']
 
                     '''
                     Look for sicard_id in the Standings dictionary - if this is a new sicard_id, 
@@ -315,14 +357,14 @@ def main():
                         count = racedb_cur.rowcount
 
                         if (count == 0):
-                            print "ERROR: Unknown SIcardID %s - Check the Rider Table" % sicard_id
                             message = "ERROR: Unknown SIcardID %s - Check the Rider Table" % sicard_id
+                            print(message)
                             logger.error(message)
                             ERROR = 1
 
                         elif (count > 1):
-                            print "ERROR: Duplicate Entries for SIcardID %s in Rider Table" % sicard_id
                             message = "ERROR: Duplicate Entries for SIcardID %s in Rider Table" % sicard_id
+                            print(message)
                             logger.error(message)
                             ERROR = 1
 
@@ -357,8 +399,8 @@ def main():
 
                             if (count == 0):
 
-                                #print "No existing raceresults found, adding new entry to raceresults..."
                                 message = "No existing raceresults, adding new entry to raceresults"
+                                print(message)
                                 logger.info(message)
 
                                 zero = 0.0
@@ -397,7 +439,7 @@ def main():
                             else:
                                 results = racedb_cur.fetchone()
 
-                                #print results
+                                #print(results)
 
                                 Standing[riderid] = {"sicard_id":sicard_id, "riderid":riderid, "ridername":ridername, "category":category,                             "plate":plate,
                                                         "1":float(results['t1']), "101":float(results['t101']), "s1":results['s1'], 
@@ -425,7 +467,7 @@ def main():
                                 #print "Gate: %s  -- Time %s  msec %s" % (control_code,punch_time.strftime("%H:%M:%S"),punch_ms)
                                 #print "Time Adjust = %s seconds" % timeAdjust[beacons[control_code]]
                                 message = "Timestamp -- Name: %s SIcardID: %s Gate: %s -- Time %s  msec %s" % (Standing[riderid]["ridername"],sicard_id,control_code,punch_time.strftime("%H:%M:%S"),punch_ms)
-                                print message
+                                print(message)
                                 logger.info(message)
 
                                 time1 = (punch_time - d.datetime(1970, 1,1)).total_seconds()
@@ -452,9 +494,9 @@ def main():
                                 total,stages = calcTotalTime([s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12])
                                 total = total + Standing[riderid]["tpenalty"]
                                 #stages = stages if (catStages[cat] >= stages) else catStages[cat]
-                                #print "Total: " + str(total)
+                                #print("Total: " + str(total))
                                 rank  = round(calcRankTime([s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12]),3) + Standing[riderid]["tpenalty"]
-                                #print rank
+                                #print(rank)
 
                                 Standing[riderid]['s1']  = timeStr(s1) if (s1 != "") else "" 
                                 Standing[riderid]['s2']  = timeStr(s2) if (s2 != "") else "" 
@@ -473,13 +515,18 @@ def main():
                                 Standing[riderid]['rank']  = rank  
                                 Standing[riderid]['stages']  = stages 
 
+                                if (stages == catStages[cat]['stages']):
+                                    query = "UPDATE siacriderid SET saic_returned='Yes' WHERE sicard_id='%s'" %  sicard_id
+                                    racedb_cur.execute(query)
 
-                for rider in Standing.keys():
+
+
+                for rider in list(Standing):
 
                     #print "SIAC: %s  ERROR: %s " % (siac,Standing[siac]["ERROR"])
                     #print rider
-                    print "Updating results for Rider ",Standing[rider]["ridername"]
                     message = "Updating results for Rider %s" % Standing[rider]["ridername"]
+                    print(message)
                     logger.info(message)
                     
                     query = ("UPDATE `raceresults` "
@@ -498,8 +545,9 @@ def main():
                             Standing[rider]['10'],Standing[rider]['110'],Standing[rider]['11'],Standing[rider]['111'],Standing[rider]['12'],Standing[rider]['112'],
                             rider)
 
-                    #print query % data
-
+                    message = query % data
+                    print(message)
+                    logger.info(message)
                     racedb_cur.execute(query,data)  
 
                     SiacRiderid.pop(Standing[rider]['sicard_id'])

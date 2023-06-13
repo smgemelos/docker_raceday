@@ -5,9 +5,9 @@ include_once 'dbconnect.php';
 $page="checkin";
 
 
-$query = "SELECT * FROM riders";
+$query = "SELECT * FROM riders ORDER BY plate";
 
-$query = "SELECT a.*, b.sicard_id FROM riders a LEFT JOIN siacriderid b ON a.riderid=b.riderid GROUP BY a.riderid ORDER BY a.plate";
+#$query = "SELECT a.*, b.sicard_id FROM riders a LEFT JOIN siacriderid b ON a.riderid=b.riderid GROUP BY a.riderid ORDER BY a.plate";
 $rider=mysql_query($query);
 
 
@@ -62,7 +62,7 @@ while ( $row = mysql_fetch_array($res) )  {
 
 	<div id="results">
 		<form method="post" action=" <?php echo $_SERVER['PHP_SELF']; ?>" >
-			<a download="rider_checkin_<?php echo date("Y_m_d"); ?>.csv" href="#" onclick="return ExcellentExport.csv(this, 'datatable');">Export to CSV</a>
+			<a href="download/downloadriderlist.php">Export to CSV</a>
 	        </br>
 	        </br>
 			<center>

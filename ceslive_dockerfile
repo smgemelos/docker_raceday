@@ -1,13 +1,14 @@
-FROM python:2
+#FROM python:2
+FROM python:3
 
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -qy vim
-RUN apt-get install -qy python-pymysql
+#RUN apt-get install -qy python-pymysql
 RUN pip install pymysql
 
 COPY ./ceslive/ceslive.py /var/app/ceslive/ceslive.py
 
-CMD ["python","/var/app/ceslive/ceslive.py"]
+CMD ["python3","/var/app/ceslive/ceslive.py"]
 
 #RUN /bin/bash
 

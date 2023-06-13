@@ -83,7 +83,7 @@ $results=mysql_query($query);
 	
 	<div id="results">
 		<form method="post" action=" <?php echo $_SERVER['PHP_SELF']; ?>" >
-	        <a download="RaceResults_<?php echo date("Y_m_d"); ?>.csv" href="#" onclick="return ExcellentExport.csv(this, 'datatable');">Export to CSV</a>
+	        <a href="download/downloadresults.php">Export to CSV</a>
 	        <br/>
 	        <br/>
 	        <a href="printresults.php">Podium Top 5</a>

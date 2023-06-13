@@ -524,15 +524,26 @@ function calcS12() {
 					foreach ($siacriderid as $siacid) {
 
 						echo '<td style="text-align:left">';
-						$query = "SELECT * FROM stamps WHERE stamp_card_id='$siacid' AND stamp_control_mode != 7 GROUP BY stamp_control_code, stamp_punch_datetime ORDER BY id_stamp";
-						$stamps=mysql_query($query);
-						while ( $row = mysql_fetch_array($stamps) ) {
-							$ts = explode(" ",$row['stamp_punch_datetime']);
-							$ms = str_pad ($row['stamp_punch_ms'], 3,$pad_string = "0",$pad_type = STR_PAD_LEFT);
-							echo 'Tp:'.$row["stamp_control_code"];
-							#echo ' Mode: '.$row["stamp_control_mode"];
-							echo ' Ts: '.$ts[1].'.'.$ms.'</br>';
-						}
+
+						$query = "SELECT * FROM stamps WHERE stamp_card_id='$siacid' AND stamp_control_mode IN (2,3,4,18,19,20) ORDER BY id_stamp";
+    						$res=mysql_query($query);
+
+				    		$stamps = array();
+					    	while ( $row = mysql_fetch_array($res) )  {
+					      	$key = $row['stamp_punch_datetime'].$row['stamp_punch_ms'];
+					      	if (!array_key_exists($key,$stamps)) {
+					            	$stamps[$key] = array('stamp_punch_datetime'=>$row['stamp_punch_datetime'],
+					                                  'stamp_punch_ms'=>$row['stamp_punch_ms'],
+					                                  'stamp_control_code'=>$row['stamp_control_code'],
+					                                  'stamp_control_mode'=>$row['stamp_control_mode']);
+					            	$ts = explode(" ",$row['stamp_punch_datetime']);
+								$ms = str_pad ($row['stamp_punch_ms'], 3,$pad_string = "0",$pad_type = STR_PAD_LEFT);
+								echo 'Tp:'.$row["stamp_control_code"];
+								#echo ' Mode: '.$row["stamp_control_mode"];
+								echo ' Ts: '.$ts[1].'.'.$ms.'</br>';
+
+					        	} 
+					    	}
 						echo '</td>';
 					}
 

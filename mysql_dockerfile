@@ -1,4 +1,14 @@
-FROM cytopia/mysql-5.6
-#RUN apt-get update && apt-get upgrade -y
-#RUN apt-get install -qy vim
+#FROM cytopia/mysql-5.6
+FROM mysql/mysql-server:5.7
+#RUN yum update && apt-get upgrade -y
+#RUN yum install -qy vim
+#RUN yum install -qy python3-pip
+#RUN pip3 install pymysql
 
+#COPY ./racetiming/racetiming2.py /var/app/racetiming/racetiming2.py
+
+#ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';
+#ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'root';
+
+#ALTER USER 'sportident'@'localhost' IDENTIFIED WITH mysql_native_password BY 'sportident';
+#ALTER USER 'sportident'@'%' IDENTIFIED WITH mysql_native_password BY 'sportident';

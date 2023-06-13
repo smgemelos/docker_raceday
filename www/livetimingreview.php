@@ -48,8 +48,19 @@ if ($count != 0) {
     $rider = mysql_fetch_array($response);
     $category = $rider['category'];
 
-    $query = "SELECT * FROM stamps WHERE stamp_card_id='$sicard_id' AND stamp_control_mode IN (2,3,4,18,19,20) GROUP BY stamp_control_code, stamp_punch_datetime ORDER BY id_stamp";
-    $stamps=mysql_query($query);
+    $query = "SELECT * FROM stamps WHERE stamp_card_id='$sicard_id' AND stamp_control_mode IN (2,3,4,18,19,20) ORDER BY id_stamp";
+    $res=mysql_query($query);
+
+    $stamps = array();
+    while ( $row = mysql_fetch_array($res) )  {
+        $key = $row['stamp_punch_datetime'].$row['stamp_punch_ms'];
+        if (!array_key_exists($key,$stamps)) {
+            $stamps[$key] = array('stamp_punch_datetime'=>$row['stamp_punch_datetime'],
+                                  'stamp_punch_ms'=>$row['stamp_punch_ms'],
+                                  'stamp_control_code'=>$row['stamp_control_code'],
+                                  'stamp_control_mode'=>$row['stamp_control_mode']);
+        } 
+    }
 }
 
 
@@ -155,7 +166,7 @@ if(isset($_POST['btn-chip']))
                     <tbody >
                         <?php
                             echo '<tr>';
-                            echo '<td style="font-size:12px;"><a href="correct_time.php?sicard_id='.$rider['sicard_id'].'">'.$rider['name'].'</a></td>';
+                            echo '<td style="font-size:12px;"><a href="correct_time.php?riderid='.$rider['riderid'].'">'.$rider['name'].'</a></td>';
                             echo '<td style="font-size:12px;">'.$rider['category'].'</td>';
                             echo '<td style="font-size:12px;">'.$rider['total'].'</td>';
                             for ($i = 0; $i < $catStages[$category]; $i++) {
@@ -169,7 +180,7 @@ if(isset($_POST['btn-chip']))
 
                 <?php 
                     if ($saic_returned=='Yes') {
-                        echo '<button id="btn-chip" name="btn-chip"  style="font-size:12px;" >Chip Returned</button>';
+                        echo '<button id="btn-chip" name="btn-chip"  style="font-size:12px; background-color: #f44336;" >Chip Returned</button>';
                     } else {
                         echo '<button id="btn-chip" name="btn-chip"  style="font-size:12px;" >Rider Done?</button>';
                     } 
@@ -220,14 +231,14 @@ if(isset($_POST['btn-chip']))
                         <td style="text-align:left;font-size:14px;">
                             <?php
 
-                                if (count($stamps)>0) {
-                                    while ( $row = mysql_fetch_array($stamps) )
-                                    {
-                                        $ts = explode(" ",$row['stamp_punch_datetime']);
-                                        $ms = str_pad ($row['stamp_punch_ms'], 3,$pad_string = "0",$pad_type = STR_PAD_LEFT);
-                                        echo 'Beacon: '.$row['stamp_control_code'].' Mode: '.$row['stamp_control_mode'].' Timestamp: '.$ts[1].'.'.$ms.'</br>';
-                                    }
+                            if (count($stamps)>0) {
+                                foreach ($stamps as $stamp) {
+                                    $ts = explode(" ",$stamp['stamp_punch_datetime']);
+                                    $ms = str_pad ($stamp['stamp_punch_ms'], 3,$pad_string = "0",$pad_type = STR_PAD_LEFT);
+                                    echo 'Beacon: '.$stamp['stamp_control_code'].' Mode: '.$stamp['stamp_control_mode'].' Timestamp: '.$ts[1].'.'.$ms.'</br>';
                                 }
+                                            
+                            }
                                 
                             ?>
 

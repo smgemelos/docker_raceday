@@ -4,17 +4,48 @@ include_once 'dbconnect.php';
 
 $page="racestatus";
 
-$query = "SELECT a.name AS category, count(riderid) AS riderid FROM categories a, riders b WHERE b.category=a.name GROUP BY b.category ORDER BY a.sortorder";
-$riders=mysql_query($query);
+$query = "SELECT name FROM categories ORDER BY sortorder";
+$categories=mysql_query($query);
 
 
-#$query = "SELECT a.name AS category, count(NULLIF(b.sicard_id,'')) AS chips, count(NULLIF(b.saic_returned,'No')) AS returns FROM categories a, riders b WHERE b.category=a.name GROUP BY b.category ORDER BY a.sortorder";
+$query = "SELECT a.name AS category, count(riderid) AS riderid FROM categories a, riders b WHERE b.category=a.name GROUP BY b.category";
+$res=mysql_query($query);
 
-$query = "SELECT a.category, count(b.riderid) AS chips, count(NULLIF(b.saic_returned,'No')) AS returns FROM riders a, (SELECT * FROM siacriderid GROUP BY riderid) b, categories c WHERE a.riderid=b.riderid AND a.category=c.name GROUP BY a.category ORDER BY c.sortorder";
-$chips=mysql_query($query);
+$riders = array();
+while ( $row = mysql_fetch_array($res) )  {
+	$riders[$row['category']] = $row['riderid'];	
+}
 
-$query = "SELECT a.name AS category, count(NULLIF(b.sicard_id,'')) AS total, count(NULLIF(b.dnf,'')) AS dnf, count(NULLIF(b.s1,'')) AS s1, count(NULLIF(b.s2,'')) AS s2, count(NULLIF(b.s3,'')) AS s3, count(NULLIF(b.s4,'')) AS s4, count(NULLIF(b.s5,'')) AS s5, count(NULLIF(b.s6,'')) AS s6, count(NULLIF(b.s7,'')) AS s7, count(NULLIF(b.s8,'')) AS s8, count(NULLIF(b.s9,'')) AS s9, count(NULLIF(b.s10,'')) AS s10 FROM categories a, raceresults b WHERE b.category=a.name  GROUP BY b.category ORDER BY a.sortorder ";
-$stages=mysql_query($query);
+
+$query = "SELECT b.category, count(distinct b.riderid) AS riders, count(a.sicard_id) AS chips, count(a.saic_returned) AS returned FROM siacriderid a, riders b WHERE a.riderid=b.riderid GROUP BY b.category";
+$res=mysql_query($query);
+
+$chips = array();
+while ( $row = mysql_fetch_array($res) )  {
+	$chips[$row['category']] = array($row['chips'],$row['returned'],$row['riders']);	
+}
+
+
+$query = "SELECT a.name AS category, count(NULLIF(b.sicard_id,'')) AS total, count(NULLIF(b.dnf,'')) AS dnf, count(NULLIF(b.s1,'')) AS s1, count(NULLIF(b.s2,'')) AS s2, count(NULLIF(b.s3,'')) AS s3, count(NULLIF(b.s4,'')) AS s4, count(NULLIF(b.s5,'')) AS s5, count(NULLIF(b.s6,'')) AS s6, count(NULLIF(b.s7,'')) AS s7, count(NULLIF(b.s8,'')) AS s8, count(NULLIF(b.s9,'')) AS s9, count(NULLIF(b.s10,'')) AS s10, count(NULLIF(b.s11,'')) AS s11, count(NULLIF(b.s12,'')) AS s12 FROM categories a, raceresults b WHERE b.category=a.name GROUP BY b.category";
+$res=mysql_query($query);
+
+$stages = array();
+while ( $row = mysql_fetch_array($res) )  {
+	$stages[$row['category']] = array('total'=>$row['total'],
+									  'dnf'=>$row['dnf'],
+									  's1'=>$row['s1'],
+									  's2'=>$row['s2'],
+									  's3'=>$row['s3'],
+									  's4'=>$row['s4'],
+									  's5'=>$row['s5'],
+									  's6'=>$row['s6'],
+									  's7'=>$row['s7'],
+									  's8'=>$row['s8'],
+									  's9'=>$row['s9'],
+									  's10'=>$row['s10'],
+									  's11'=>$row['s11'],
+									  's12'=>$row['s12']);	
+}
 
 
 ?>
@@ -57,6 +88,7 @@ $stages=mysql_query($query);
 				<thead>
 					<tr><th><center>Category</th>
 						<th><center>Registered Riders</th>
+						<th><center>Checked in Riders</th>
 						<th><center>Chips Assigned</th>
 						<th><center>Chips Returned</th>
 						<th><center>Stage 1</th>
@@ -69,6 +101,8 @@ $stages=mysql_query($query);
 						<th><center>Stage 8</th>
 						<th><center>Stage 9</th>
 						<th><center>Stage 10</th>
+						<th><center>Stage 11</th>
+						<th><center>Stage 12</th>
 					</tr>
 				</thead>
 
@@ -77,6 +111,7 @@ $stages=mysql_query($query);
 
 				$i = 0;
 				$rider_total = 0;
+				$checkin_total = 0;
 				$chip_total = 0;
 				$return_total = 0;
 				$dnf_total = 0;
@@ -90,47 +125,81 @@ $stages=mysql_query($query);
 				$s8_total = 0;
 				$s9_total = 0;
 				$s10_total = 0;
+				$s11_total = 0;
+				$s12_total = 0;
 
+				while ( $category=mysql_fetch_array($categories) ) {
 
-				while ( $rider=mysql_fetch_array($riders) ) {
-					$chip = mysql_fetch_array($chips);
-					$stage = mysql_fetch_array($stages);
+					$cat = $category['name'];
 
 					echo '<tr>';
-					echo '<td>'.$rider['category'].'</td>';
-					echo '<td>'.$rider['riderid'].'</td>';
-					echo '<td>'.$chip['chips'].'</td>';
-					echo '<td>'.$chip['returns'].'</td>';
-					echo '<td>'.$stage['s1'].'</td>';
-					echo '<td>'.$stage['s2'].'</td>';
-					echo '<td>'.$stage['s3'].'</td>';
-					echo '<td>'.$stage['s4'].'</td>';
-					echo '<td>'.$stage['s5'].'</td>';
-					echo '<td>'.$stage['s6'].'</td>';
-					echo '<td>'.$stage['s7'].'</td>';
-					echo '<td>'.$stage['s8'].'</td>';
-					echo '<td>'.$stage['s9'].'</td>';
-					echo '<td>'.$stage['s10'].'</td>';
-					echo '</tr>';
+					echo '<td>'.$cat.'</td>';
+					if (array_key_exists($cat,$riders)) {
+						echo '<td>'.$riders[$cat].'</td>';
+					} else {
+						echo '<td>0</td>';
+					}
+					if (array_key_exists($cat,$chips)) {
+						echo '<td>'.$chips[$cat][2].'</td>';
+						echo '<td>'.$chips[$cat][0].'</td>';
+						echo '<td>'.$chips[$cat][1].'</td>';
+					} else {
+						echo '<td>0</td>';
+						echo '<td>0</td>';
+						echo '<td>0</td>';
+					}
+					if (array_key_exists($cat,$stages)) {
+						echo '<td>'.$stages[$cat]['s1'].'</td>';
+						echo '<td>'.$stages[$cat]['s2'].'</td>';
+						echo '<td>'.$stages[$cat]['s3'].'</td>';
+						echo '<td>'.$stages[$cat]['s4'].'</td>';
+						echo '<td>'.$stages[$cat]['s5'].'</td>';
+						echo '<td>'.$stages[$cat]['s6'].'</td>';
+						echo '<td>'.$stages[$cat]['s7'].'</td>';
+						echo '<td>'.$stages[$cat]['s8'].'</td>';
+						echo '<td>'.$stages[$cat]['s9'].'</td>';
+						echo '<td>'.$stages[$cat]['s10'].'</td>';
+						echo '<td>'.$stages[$cat]['s11'].'</td>';
+						echo '<td>'.$stages[$cat]['s12'].'</td>';
+						echo '</tr>';
 
-					$rider_total = $rider_total + $rider['riderid'];
-					$chip_total = $chip_total + $chip['chips'];
-					$return_total = $return_total + $chip['returns'];
-					$s1_total = $s1_total + $stage['s1'];
-					$s2_total = $s2_total + $stage['s2'];
-					$s3_total = $s3_total + $stage['s3'];
-					$s4_total = $s4_total + $stage['s4'];
-					$s5_total = $s5_total + $stage['s5'];
-					$s6_total = $s6_total + $stage['s6'];
-					$s7_total = $s7_total + $stage['s7'];
-					$s8_total = $s8_total + $stage['s8'];
-					$s9_total = $s9_total + $stage['s9'];
-					$s10_total = $s10_total + $stage['s10'];
+						$rider_total = $rider_total + $riders[$cat];
+						$checkin_total = $checkin_total + $chips[$cat][2];
+						$chip_total = $chip_total + $chips[$cat][0];
+						$return_total = $return_total + $chips[$cat][1];
+						$s1_total = $s1_total + $stages[$cat]['s1'];
+						$s2_total = $s2_total + $stages[$cat]['s2'];
+						$s3_total = $s3_total + $stages[$cat]['s3'];
+						$s4_total = $s4_total + $stages[$cat]['s4'];
+						$s5_total = $s5_total + $stages[$cat]['s5'];
+						$s6_total = $s6_total + $stages[$cat]['s6'];
+						$s7_total = $s7_total + $stages[$cat]['s7'];
+						$s8_total = $s8_total + $stages[$cat]['s8'];
+						$s9_total = $s9_total + $stages[$cat]['s9'];
+						$s10_total = $s10_total + $stages[$cat]['s10'];
+						$s11_total = $s11_total + $stages[$cat]['s11'];
+						$s12_total = $s12_total + $stages[$cat]['s12'];
+					} else {
+						echo '<td>0</td>';
+						echo '<td>0</td>';
+						echo '<td>0</td>';
+						echo '<td>0</td>';
+						echo '<td>0</td>';
+						echo '<td>0</td>';
+						echo '<td>0</td>';
+						echo '<td>0</td>';
+						echo '<td>0</td>';
+						echo '<td>0</td>';
+						echo '<td>0</td>';
+						echo '<td>0</td>';
+						echo '</tr>';
+					}
 				}
 
 				echo '<tr>';
 				echo '<td><b>TOTAL</td>';
 				echo '<td><b>'.$rider_total.'</td>';
+				echo '<td><b>'.$checkin_total.'</td>';
 				echo '<td><b>'.$chip_total.'</td>';
 				echo '<td><b>'.$return_total.'</td>';
 				echo '<td><b>'.$s1_total.'</td>';
@@ -143,6 +212,8 @@ $stages=mysql_query($query);
 				echo '<td><b>'.$s8_total.'</td>';
 				echo '<td><b>'.$s9_total.'</td>';
 				echo '<td><b>'.$s10_total.'</td>';
+				echo '<td><b>'.$s11_total.'</td>';
+				echo '<td><b>'.$s12_total.'</td>';
 				echo '</tr>';
 					
 

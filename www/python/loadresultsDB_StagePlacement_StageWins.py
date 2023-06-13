@@ -3,7 +3,7 @@ This executable is used to load race results into the DB table "raceresults"
 
 Execution:
 
-python loadresultsDB.py <racefile> <racenumber i.e. 20151>
+python3 loadresultsDB_StagePlacement_StageWins.py 20239 aws
 
 
 '''
@@ -32,7 +32,7 @@ def calcSec(s):
         elif len(time) == 1:
             sec = int(time[0])
         else:
-            print "check this time %s" % s
+            print("check this time %s" % s)
 
         #print "sec: %s  msec: %s" % (sec,millisec)
 
@@ -46,11 +46,9 @@ def calcSec(s):
 
 def main():
 
-    print ""
-    print ""
-    print ""
-    print ""
-    print "Uploading Results Data..."
+
+    print("")
+    print("Uploading Results Data...")
 
     # Connect to the database
 
@@ -59,8 +57,8 @@ def main():
 
     if dbflag == "local":
         cesdb = pymysql.connect(host='localhost',
-                                     user='root',
-                                     password='root',
+                                     user='sportident',
+                                     password='sportident',
                                      db='ces',
                                      charset='latin1',
                                      cursorclass=pymysql.cursors.DictCursor)
@@ -80,8 +78,8 @@ def main():
 
 
     racedb = pymysql.connect(host='localhost',
-                             user='root',
-                             password='root',
+                             user='sportident',
+                             password='sportident',
                              db='lcsportident_events',
                              charset='latin1',
                              cursorclass=pymysql.cursors.DictCursor)
@@ -106,7 +104,7 @@ def main():
             maxStages = stages
         catStages[name] = stages
 
-    query = "SELECT a.name, a.riderid, a.category, b.sortorder, a.ranktotal, a.penalty, a.total, a.ttotal, a.stages, \
+    query = "SELECT a.name, a.plate, a.riderid, a.category, b.sortorder, a.ranktotal, a.penalty, a.total, a.ttotal, a.stages, \
                     a.s1, a.s2, a.s3, a.s4, a.s5, a.s6, a.s7, a.s8, a.s9, a.s10, a.s11, a.s12 \
              FROM raceresults a, categories b \
              WHERE a.category=b.name \
@@ -121,11 +119,12 @@ def main():
         #print(line)
 
         #raceid = row['raceid']
-        riderid = pymysql.escape_string(row['riderid'])
+        riderid = pymysql.converters.escape_string(row['riderid'])
         category = row['category']
-        name = pymysql.escape_string(row['name'])
+        name = pymysql.converters.escape_string(row['name'])
         totaltime = row['total'] 
         penalty = '' if (row['penalty']=='None') else row['penalty']
+        plate = row['plate']
         s1 = row['s1']
         s2 = row['s2']
         s3 = row['s3']
@@ -190,20 +189,19 @@ def main():
         
 
         query = "INSERT INTO raceresults \
-                    (raceid,riderid,category,name,place,totaltime,ttotal,stages,penalty,\
+                    (plate,raceid,riderid,category,name,place,totaltime,ttotal,stages,penalty,\
                      s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12) \
                  VALUES \
-                    (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)" 
+                    (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)" 
 
-        data = (raceid,riderid,category,name,placestr,total,ttotal,stagescompleted,penalty,
-                s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12)
+        data = (plate,raceid,riderid,category,name,placestr,total,ttotal,stagescompleted,penalty,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12)
  
         cesdb_cur.execute(query,data)
 
 
 
-    print ""
-    print "Adding Stage Placement...."
+    print("")
+    print("Adding Stage Placement....")
 
 
     for i in ['1','2','3','4','5','6','7','8','9','10','11','12']:
@@ -245,8 +243,8 @@ def main():
 
 
 
-    print ""
-    print "Calculating Stage Wins...."
+    print("")
+    print("Calculating Stage Wins....")
 
 
     query = "SELECT * FROM raceresults WHERE raceid='%s'" % raceid 
@@ -275,8 +273,8 @@ def main():
 
 
 
-    print ""
-    print "DONE - Click Home to go back."
+    print("")
+    print("DONE - Click Home to go back.")
 
 
     cesdb_cur.close()

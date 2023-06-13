@@ -2,10 +2,10 @@ version: '3.8'
 services:
   db:
     container_name: mysql
-    image: smgemelos/raceday-mysql:1.0
-    #build:
-    #  context: ./
-    #  dockerfile: mysql_dockerfile
+    #image: smgemelos/raceday-mysql:1.0
+    build:
+      context: ./
+      dockerfile: mysql_dockerfile
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -19,40 +19,48 @@ services:
     ports:
       - "3306:3306"
 
-  php-apache-environment:
+  raceday-webapp:
     container_name: raceday-webapp
-    image: smgemelos/raceday-web:1.0
-    #build:
-    #  context: ./
-    #  dockerfile: raceday_dockerfile
+    #image: smgemelos/raceday-web:1.0
+    build:
+      context: ./
+      dockerfile: raceday_dockerfile
     restart: always
     depends_on:
       - db
-    #volumes:
-    #  - ./www:/var/www/html/
+    volumes:
+      - ./www:/var/www/html/
 
     ports:
       - 80:80
 
 
-  pythonapp:
+  racetiming:
     container_name: racetiming
-    image: smgemelos/raceday-racetiming:1.0
-    #build:
-    #  context: ./
-    #  dockerfile: racetiming_dockerfile
+    #image: smgemelos/raceday-racetiming:1.0
+    build:
+      context: ./
+      dockerfile: racetiming_dockerfile
     restart: always
     depends_on:
       - db
+    volumes:
+      - ./log:/var/log
+      - ./racetiming:/var/app/racetiming
+
+      
 
   ceslive:
     container_name: ceslive
-    image: smgemelos/raceday-live:1.0
-    #build:
-    #  context: ./
-    #  dockerfile: ceslive_dockerfile
+    image: smgemelos/raceday-live:1.2
+    build:
+      context: ./
+      dockerfile: ceslive_dockerfile
     restart: always
     depends_on:
       - db
+    volumes:
+      - ./log:/var/log
+      - ./ceslive:/var/app/ceslive
 
 

@@ -16,6 +16,17 @@ $query = "SELECT * FROM beacons";
 $beacons=mysql_query($query);
 
 
+$query = "SELECT * FROM status WHERE id=1";
+$status=mysql_fetch_array(mysql_query($query));
+
+if(isset($_POST['racetiming']))
+{
+    if ($_POST['racetiming'] == "RESTART") {
+		$query = "UPDATE status SET racetiming='restart' WHERE  id=1";
+		mysql_query($query);
+    }
+	header("Location: admin_beacontime.php");
+}
 
 
 ?>
@@ -66,10 +77,18 @@ function calcS1() {
 
 	<div id="categories" style="width: 900px; background: #f4f7f8; border-radius: 8px; overflow-x:auto; margin: 80px auto; padding: 10px 10px 10px 10px;" >
 
-		<h3>Do NOT delete the Race Results.</h3>
-		<h3>1 - Enter the beacon correcton time IN SECONDS. </h3>
-		<h3>2 - THEN stop and restart the RaceTiming cmd line.</h3>
-		<h3><br></h3>
+<form method="post"   >
+		<h4>Enter the beacon correcton time IN SECONDS -then restart the RaceTiming.</h4>
+		
+		<label for="racetiming">Racetiming App:</label>
+		<select id="racetiming" type="text" name="racetiming" onchange="this.form.submit()" >
+		<option value="ON" <?php if ($status["racetiming"] == "start") { echo "selected"; } ?> >RUNNING</option>
+		<option value="ON" <?php if ($status["racetiming"] == "stop") { echo "selected"; } ?> >STOPPED</option>
+		<option value="RESTART" <?php if ($status["racetiming"] == "restart") { echo "selected"; } ?> >RESTART</option>
+		</select>
+		<br>
+		<br>
+
 
 		<table id="datatable" class="order-table table">
 			<thead>
@@ -88,7 +107,7 @@ function calcS1() {
 		</table>
 
 
-		<form method="post"   >
+		
 			<center>
 			<table>
 			<tr><td></td>

@@ -1,6 +1,6 @@
 <?php
 
-if(!mysql_connect("mysql","root","root"))
+if(!mysql_connect("mysql","sportident","sportident"))
 {
      die('oops connection problem ! --> '.mysql_error());
 } 

@@ -20,11 +20,10 @@ if(isset($_POST['btn-submit']))
 	$raceid = mysql_real_escape_string($_POST['raceid']);
 	$plate = mysql_real_escape_string($_POST['plate']);
 	$category = $_POST['category'];
-	$sicard_id = mysql_real_escape_string($_POST['sicard_id']);
-	$battery = $_POST['battery']=="on" ? 'Yes' : 'No';
 
 
-	if ( ($name == "") || ($riderid == "") || ($raceid == "") || ($plate == "") || ($sicard_id == "") || ($category == "") || ($battery == "No") ) {
+
+	if ( ($name == "") || ($riderid == "") || ($raceid == "") || ($plate == "") || ($category == "")  ) {
 		?>
         <script>alert('All fields are required to register.  Please complete the form and resubmit.');</script>
         <?php
@@ -32,8 +31,8 @@ if(isset($_POST['btn-submit']))
 	else
 	{
 
-	 	$query = "INSERT INTO riders (name,riderid,raceid,plate,category,sicard_id,battery_check,saic_returned) VALUES 
-	 			('$name','$riderid','$raceid','$plate','$category','$sicard_id','$battery','No')";
+	 	$query = "INSERT INTO riders (name,riderid,raceid,plate,category) VALUES 
+	 			('$name','$riderid','$raceid','$plate','$category')";
 
 		if(mysql_query($query))
 	 	{
@@ -71,38 +70,6 @@ if(isset($_POST['btn-submit']))
 	<link rel="stylesheet" href="raceresults.css" type="text/css" />
     <script type="text/javascript" src="js/livetiming.js"></script>
     <script src="js/table-filter.js"></script>
-
-	<script>
-	    var ajax_saic = function() {
-
-	    	var saic = document.getElementById('saic').value;
-	    	var timestamp = "<?php echo $timestamp ?>"
-
-			if (saic == "") {
-				if (window.XMLHttpRequest) {
-	                // code for IE7+, Firefox, Chrome, Opera, Safari
-	                xmlhttp = new XMLHttpRequest();
-	            } else {
-	                // code for IE6, IE5
-	                xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-	            }
-	            xmlhttp.onreadystatechange = function() {
-	                if (this.readyState == 4 && this.status == 200) {
-	                    document.getElementById("sicard_id").innerHTML = this.responseText;
-	                }
-	            };
-	            
-
-	            xmlhttp.open("GET","ajaxridersaic.php?timestamp="+timestamp,true);
-	            xmlhttp.send();
-			}
-            
-        }
-
-        var interval = 1000; //number of milliseconds between refreshes
-
-        setInterval(ajax_saic, interval);
-	</script>
 
 </head>
 
@@ -156,19 +123,6 @@ if(isset($_POST['btn-submit']))
 				</select>
 			</br>
 
-			<div id="sicard_id">
-				<label for="sicard_id">SAIC Number:</label>
-				<input id="saic" type="text" name="sicard_id" placeholder="SAIC Number" value="<?php echo $sicard_id; ?>" required />
-			</div>
-			</br>
-			<label for="battery">SAIC Battery Check:</label>
-			<input type="checkbox" name="battery" 
-				<?php echo ($battery=="Yes" ? 'checked' : '');?> 
-				required > 
-			</br>
-			</br>
-
-			
 			<button type="submit" class="btn btn-primary btn-block" name="btn-submit">SUBMIT</button>
 			</br>
 
