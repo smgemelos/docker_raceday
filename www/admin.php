@@ -415,14 +415,14 @@ if(isset($_POST['btn-uploadresults']))
 
 			<label for="racetiming">Racetiming App:</label>
 			<select id="racetiming" type="text" name="racetiming" onchange="this.form.submit()" >
-					<option value="ON" <?php if ($status["racetiming"] == "start") { echo "selected"; } ?> >ON</option>
-					<option value="OFF" <?php if ($status["racetiming"] == "stop") { echo "selected"; } ?> >OFF</option>
+					<option value="ON" <?php if ($status["racetiming"] == "start") { echo "selected"; $_SESSION['racetiming'] = "ON";  } ?> >ON</option>
+					<option value="OFF" <?php if ($status["racetiming"] == "stop") { echo "selected"; $_SESSION['racetiming'] = "OFF";} ?> >OFF</option>
 			</select>
 
 			<label for="ceslive">CES Live App:</label>
 			<select id="ceslive" type="text" name="ceslive" onchange="this.form.submit()" >
-					<option value="ON" <?php if ($status["ceslive"] == "start") { echo "selected"; } ?> >ON</option>
-					<option value="OFF" <?php if ($status["ceslive"] == "stop") { echo "selected"; } ?> >OFF</option>
+					<option value="ON" <?php if ($status["ceslive"] == "start") { echo "selected"; $_SESSION['ceslive'] = "ON"; } ?> >ON</option>
+					<option value="OFF" <?php if ($status["ceslive"] == "stop") { echo "selected"; $_SESSION['ceslive'] = "OFF"; } ?> >OFF</option>
 			</select>
 			</br> 
 			</br> 
